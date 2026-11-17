@@ -2,6 +2,15 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "autocomplete-spellcheck-engine"
+version = "0.1.0"
+description = "Search Autocomplete & Spell Correction Engine"
+requires-python = ">=3.11"
+dependencies = [
+    "flask>=3.0.0",
+]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
