@@ -43,7 +43,7 @@ for cp in CANDIDATE_DATASET_PATHS:
         dataset_path = cp
         break
 
-# Lazy or immediate load
+# Initialize engine
 engine = AutocompleteEngine()
 if dataset_path is not None:
     try:
@@ -77,12 +77,20 @@ for tp in CANDIDATE_TEMPLATE_PATHS:
         break
 
 
-@app.route("/")
-@app.route("/api")
-@app.route("/api/index")
-@app.route("/api/index/")
+@app.route("/", methods=["GET", "POST"])
+@app.route("/api", methods=["GET", "POST"])
+@app.route("/api/index", methods=["GET", "POST"])
+@app.route("/api/index/", methods=["GET", "POST"])
 def index():
-    """Render the single-page search interface."""
+    """Render the single-page search interface or dispatch based on query parameters."""
+    # If this is a POST request, dispatch to select
+    if request.method == "POST":
+        return select_endpoint()
+    
+    # If query parameter 'q' is present, dispatch to suggest
+    if "q" in request.args:
+        return suggest_endpoint()
+        
     if html_template_content:
         return render_template_string(html_template_content, vocab_size=len(engine))
     return "<h1>Search Autocomplete Engine</h1><p>Ready. Use /suggest?q=...</p>"
@@ -162,14 +170,13 @@ def fallback_router(e):
     Catch-all router to handle Vercel proxy rewrite variations seamlessly.
     Ensures that any rewritten URL returns the appropriate endpoint.
     """
-    raw_path = request.path.lower()
-    if "suggest" in raw_path:
+    if "q" in request.args:
         return suggest_endpoint()
-    if "select" in raw_path and request.method == "POST":
+    if request.method == "POST":
         return select_endpoint()
+    raw_path = request.path.lower()
     if "health" in raw_path or "stats" in raw_path:
         return health_endpoint()
-    # Default to main interface on GET
     if request.method == "GET":
         return index()
     return jsonify({"error": "Not found", "path": request.path}), 404
