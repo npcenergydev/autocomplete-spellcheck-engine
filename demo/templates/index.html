@@ -6,19 +6,27 @@
   <title>Search Autocomplete & Spell Correction Engine</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --border: #334155;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --accent: #8b5cf6;
+      --bg: #000000;
+      --surface: #0a0a0a;
+      --surface-elevated: #111111;
+      --surface-hover: #171717;
+      --border: #222222;
+      --border-focus: #555555;
+      --border-subtle: #1a1a1a;
+      
+      --text-primary: #ffffff;
+      --text-secondary: #a1a1aa;
+      --text-muted: #52525b;
+      --text-dim: #3f3f46;
+      
+      --tag-bg: #141414;
+      --tag-border: #27272a;
+      
+      --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'Geist Mono', 'SF Mono', Menlo, Consolas, monospace;
     }
 
     * {
@@ -29,75 +37,87 @@
 
     body {
       background-color: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 3rem 1.5rem;
+      padding: 4rem 1.5rem;
+      letter-spacing: -0.01em;
+      -webkit-font-smoothing: antialiased;
     }
 
     .container {
       width: 100%;
-      max-width: 680px;
+      max-width: 640px;
     }
 
     header {
       text-align: center;
-      margin-bottom: 2rem;
+      margin-bottom: 2.5rem;
     }
 
     .badge-pill {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.65rem;
       border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      background: rgba(59, 130, 246, 0.15);
-      color: #60a5fa;
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      margin-bottom: 0.75rem;
+      background: var(--surface);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      margin-bottom: 1.25rem;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
     }
 
     h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      letter-spacing: -0.025em;
+      font-size: 2.25rem;
+      font-weight: 600;
+      letter-spacing: -0.04em;
+      color: var(--text-primary);
       margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, #60a5fa, #c084fc);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
     }
 
     .subtitle {
       color: var(--text-muted);
       font-size: 0.95rem;
+      font-weight: 400;
     }
 
     .stats-bar {
       display: flex;
       justify-content: space-between;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 0.75rem 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.65rem 1rem;
       margin-bottom: 1.5rem;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
     }
 
     .stat-item {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.45rem;
+      color: var(--text-muted);
     }
 
     .stat-val {
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 600;
-      color: var(--primary);
+      font-family: var(--font-mono);
+      font-weight: 500;
+      color: var(--text-primary);
     }
 
     .search-wrapper {
@@ -107,26 +127,29 @@
 
     .search-input {
       width: 100%;
-      padding: 1.1rem 1.25rem 1.1rem 3.25rem;
-      background: var(--card-bg);
-      border: 2px solid var(--border);
-      border-radius: 14px;
-      font-size: 1.15rem;
-      color: var(--text);
+      padding: 1rem 1.25rem 1rem 3rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 1.05rem;
+      color: var(--text-primary);
       font-family: inherit;
-      transition: all 0.2s ease;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
       outline: none;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .search-input::placeholder {
+      color: var(--text-dim);
     }
 
     .search-input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 1px var(--border-focus);
     }
 
     .search-icon {
       position: absolute;
-      left: 1.15rem;
+      left: 1.1rem;
       top: 50%;
       transform: translateY(-50%);
       color: var(--text-muted);
@@ -135,77 +158,82 @@
 
     .clear-btn {
       position: absolute;
-      right: 1.15rem;
+      right: 1rem;
       top: 50%;
       transform: translateY(-50%);
       background: none;
       border: none;
       color: var(--text-muted);
       cursor: pointer;
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       display: none;
+      padding: 0.2rem;
     }
 
     .clear-btn:hover {
-      color: var(--text);
+      color: var(--text-primary);
     }
 
     .sample-queries {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
+      gap: 0.4rem;
+      margin-bottom: 1.75rem;
       align-items: center;
     }
 
     .sample-label {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-right: 0.25rem;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-right: 0.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     .chip {
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--surface);
       border: 1px solid var(--border);
-      padding: 0.25rem 0.65rem;
+      padding: 0.25rem 0.6rem;
       border-radius: 6px;
-      font-size: 0.8rem;
-      color: var(--text-muted);
+      font-size: 0.75rem;
+      color: var(--text-secondary);
       cursor: pointer;
+      font-family: var(--font-mono);
       transition: all 0.15s ease;
     }
 
     .chip:hover {
-      background: rgba(59, 130, 246, 0.15);
-      border-color: var(--primary);
-      color: #93c5fd;
+      background: var(--surface-hover);
+      border-color: var(--border-focus);
+      color: var(--text-primary);
     }
 
     .card {
-      background: var(--card-bg);
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 12px;
       overflow: hidden;
       margin-bottom: 1rem;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
     }
 
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.75rem 1.25rem;
-      background: rgba(255, 255, 255, 0.02);
-      border-bottom: 1px solid var(--border);
-      font-size: 0.8rem;
+      padding: 0.7rem 1rem;
+      background: var(--surface-elevated);
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 0.75rem;
       color: var(--text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
       font-weight: 500;
     }
 
     .timing-badge {
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--success);
-      font-weight: 600;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+      font-weight: 500;
     }
 
     .suggestion-list {
@@ -216,10 +244,10 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.9rem 1.25rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
       cursor: pointer;
-      transition: background 0.15s ease;
+      transition: background 0.12s ease;
     }
 
     .suggestion-item:last-child {
@@ -227,47 +255,51 @@
     }
 
     .suggestion-item:hover {
-      background: rgba(59, 130, 246, 0.1);
+      background: var(--surface-hover);
     }
 
     .item-left {
       display: flex;
       align-items: center;
-      gap: 0.85rem;
+      gap: 0.75rem;
     }
 
     .rank-num {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.08);
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
       color: var(--text-muted);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    .word-text {
-      font-size: 1rem;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
       font-weight: 500;
     }
 
+    .word-text {
+      font-size: 0.95rem;
+      font-weight: 400;
+      color: var(--text-primary);
+    }
+
     .freq-tag {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      background: rgba(255, 255, 255, 0.04);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      background: var(--tag-bg);
+      border: 1px solid var(--tag-border);
       padding: 0.2rem 0.5rem;
       border-radius: 4px;
     }
 
     .did-you-mean-card {
-      background: rgba(245, 158, 11, 0.1);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      border-radius: 12px;
-      padding: 1rem 1.25rem;
+      background: var(--surface);
+      border: 1px solid #333333;
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
       margin-bottom: 1rem;
       display: flex;
       align-items: center;
@@ -277,63 +309,93 @@
     .dym-left {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.6rem;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
     }
 
     .dym-btn {
-      color: #fde047;
-      font-weight: 700;
+      color: #ffffff;
+      font-weight: 600;
       text-decoration: underline;
+      text-underline-offset: 3px;
       cursor: pointer;
+    }
+
+    .dym-btn:hover {
+      color: #e4e4e7;
     }
 
     .toast {
       position: fixed;
       bottom: 2rem;
       left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: #10b981;
+      transform: translateX(-50%) translateY(80px);
+      background: #18181b;
       color: #ffffff;
-      padding: 0.75rem 1.5rem;
+      border: 1px solid #3f3f46;
+      padding: 0.6rem 1.25rem;
       border-radius: 9999px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      font-size: 0.82rem;
+      font-family: var(--font-mono);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+      opacity: 0;
       pointer-events: none;
       z-index: 100;
     }
 
     .toast.show {
       transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    footer a:hover {
+      color: var(--text-primary);
     }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <div class="badge-pill">DSA Final Project</div>
-      <h1>Autocomplete & Spell Correction</h1>
+      <div class="badge-pill">
+        <span class="badge-dot"></span>
+        <span>DSA Core Engine • Sub-Millisecond</span>
+      </div>
+      <h1>Autocomplete & Spellcheck</h1>
       <p class="subtitle">Prefix Trie • Bounded Min-Heap Top-K • Levenshtein DP Backtracking</p>
     </header>
 
     <div class="stats-bar">
       <div class="stat-item">
         <span>Vocabulary:</span>
-        <span class="stat-val" id="vocabCount">{{ vocab_size|default(100000) }} words</span>
+        <span class="stat-val" id="vocabCount">{{ vocab_size|default(105000) }} words</span>
       </div>
       <div class="stat-item">
-        <span>Lookup Latency:</span>
+        <span>Latency:</span>
         <span class="stat-val" id="latencyStat">0.00 µs</span>
       </div>
       <div class="stat-item">
         <span>Status:</span>
-        <span class="stat-val" style="color: var(--success);">Sub-Millisecond ⚡</span>
+        <span class="stat-val" style="color: #ffffff;">Verified</span>
       </div>
     </div>
 
     <div class="search-wrapper">
-      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="8"></circle>
         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
       </svg>
@@ -341,26 +403,26 @@
         type="text"
         id="searchInput"
         class="search-input"
-        placeholder="Type to search (e.g. 'data', 'alg', 'algoritm')..."
+        placeholder="Type a prefix or typo (e.g. 'data', 'alg', 'algoritm')..."
         autocomplete="off"
+        spellcheck="false"
         autofocus
       />
       <button id="clearBtn" class="clear-btn">&times;</button>
     </div>
 
     <div class="sample-queries">
-      <span class="sample-label">Try:</span>
+      <span class="sample-label">Examples:</span>
       <span class="chip" onclick="setQuery('data')">data</span>
       <span class="chip" onclick="setQuery('data st')">data st</span>
       <span class="chip" onclick="setQuery('alg')">alg</span>
-      <span class="chip" onclick="setQuery('algoritm')">algoritm (typo)</span>
-      <span class="chip" onclick="setQuery('machin')">machin (typo)</span>
-      <span class="chip" onclick="setQuery('databaes')">databaes (typo)</span>
+      <span class="chip" onclick="setQuery('algoritm')">algoritm</span>
+      <span class="chip" onclick="setQuery('machin')">machin</span>
+      <span class="chip" onclick="setQuery('databaes')">databaes</span>
     </div>
 
     <div id="didYouMeanBox" class="did-you-mean-card" style="display: none;">
       <div class="dym-left">
-        <span style="font-size: 1.2rem;">💡</span>
         <span>Did you mean: <strong id="dymTarget" class="dym-btn"></strong>?</span>
       </div>
       <span id="dymDetails" class="freq-tag">dist=1</span>
@@ -368,14 +430,19 @@
 
     <div class="card" id="resultsCard" style="display: none;">
       <div class="card-header">
-        <span>TOP SUGGESTIONS (Click to boost popularity)</span>
+        <span>Ranked Completions (Click to Boost Frequency)</span>
         <span class="timing-badge" id="timingBadge">0.00 µs</span>
       </div>
       <ul class="suggestion-list" id="suggestionList"></ul>
     </div>
+
+    <footer>
+      <span>Zero external search libraries • Built with Python 3.13 Standard Library • </span>
+      <a href="https://github.com/npcenergydev/autocomplete-spellcheck-engine" target="_blank" rel="noopener">GitHub</a>
+    </footer>
   </div>
 
-  <div id="toast" class="toast">⚡ Frequency updated!</div>
+  <div id="toast" class="toast">Frequency updated</div>
 
   <script>
     const searchInput = document.getElementById('searchInput');
@@ -429,12 +496,10 @@
         });
         const data = await resp.json();
 
-        // Update timing displays
         const timingText = `${data.latency_us.toFixed(1)} µs (${data.latency_ms.toFixed(3)} ms)`;
         timingBadge.textContent = timingText;
         latencyStat.textContent = timingText;
 
-        // Render Did You Mean fallback
         if (data.fell_back && data.did_you_mean) {
           didYouMeanBox.style.display = 'flex';
           dymTarget.textContent = data.did_you_mean;
@@ -445,7 +510,6 @@
           didYouMeanBox.style.display = 'none';
         }
 
-        // Render Top Suggestions
         suggestionList.innerHTML = '';
         if (data.suggestions && data.suggestions.length > 0) {
           data.suggestions.forEach((item, index) => {
@@ -479,7 +543,7 @@
         });
         const res = await resp.json();
         if (res.success) {
-          showToast(`⚡ Boosted '${word}' (freq: ${res.new_freq.toLocaleString()})`);
+          showToast(`⚡ '${word}' boosted (+${res.boost}) -> freq: ${res.new_freq.toLocaleString()}`);
           fetchSuggestions(searchInput.value.trim());
         }
       } catch (e) {

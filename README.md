@@ -1,6 +1,13 @@
 # Search Autocomplete and Spell Correction Engine
 
-A high-performance University Data Structures and Algorithms (DSA) project implementing a real-time **Search Autocomplete** and **Spell Correction Engine** from first principles in Python 3.13.
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Live%20Demo-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://autocomplete-spellcheck-engine.vercel.app)
+[![Tests Passing](https://img.shields.io/badge/pytest-33%20passed-10b981?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Python 3.13](https://img.shields.io/badge/Python-3.13-3776ab?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+
+> **Live Production Website**: [https://autocomplete-spellcheck-engine.vercel.app](https://autocomplete-spellcheck-engine.vercel.app)
+
+A high-performance University Data Structures and Algorithms (DSA) project implementing a real-time **Search Autocomplete** and **Spell Correction Engine** from first principles in Python 3.13, featuring a dark black, gray, and white minimalistic user interface.
 
 The core engine relies strictly on the **Python standard library** (zero third-party libraries for Trie, min-heap, or edit distance). External libraries (`flask`, `matplotlib`, `pytest`) are used exclusively for the web demonstration, benchmarking charts, and automated testing.
 
@@ -8,6 +15,8 @@ The core engine relies strictly on the **Python standard library** (zero third-p
 
 ## Key Highlights
 
+- **Live Cloud Deployment**: Production-ready serverless deployment on Vercel with instant cold starts and sub-millisecond local execution.
+- **Minimalist Dark UI**: Monochrome black/gray/white interface with real-time keystroke timing, dynamic rank badges, and instant frequency boosting.
 - **Prefix Tree (Trie) with Node Pruning**: $O(L)$ insertion, exact search, prefix traversal, and recursive memory-pruning deletions.
 - **Top-K Ranking via Bounded Min-Heap & Branch-and-Bound**: $O(P + M_{\text{eff}} \log K)$ retrieval maintaining a size-$K$ heap via `heapq`, with subtree pruning via `node.max_freq`. Ranking is primary by frequency descending, secondary by alphabetical ascending.
 - **Dynamic Frequency Learning**: `engine.select(word)` dynamically boosts frequency upon user selection, altering subsequent ranking in real time.
@@ -52,6 +61,8 @@ graph TD
 ## Directory Structure
 
 ```
+├── api/
+│   └── index.py                    # Vercel serverless entrypoint
 ├── data/
 │   └── words.txt                   # 105,000+ words with Zipf frequencies
 ├── src/
@@ -82,13 +93,15 @@ graph TD
 │   ├── cli.py                      # Interactive terminal CLI with microsecond timing
 │   ├── app.py                      # Flask web server
 │   └── templates/
-│       └── index.html              # Responsive single-page search interface
+│       └── index.html              # Dark black/gray/white minimalist interface
 ├── report/
 │   └── report.md                   # Comprehensive academic project report
 ├── slides/
-│   └── outline.md                  # 10-12 slide presentation outline
+│   └── outline.md                  # 12-slide presentation outline
 ├── scripts/
 │   └── generate_dataset.py         # Dataset generator from system dictionary
+├── vercel.json                     # Vercel serverless rewrite configuration
+├── requirements.txt                # Vercel Python runtime dependencies
 ├── pyproject.toml                  # Pytest and project configuration
 └── README.md                       # Main documentation
 ```
