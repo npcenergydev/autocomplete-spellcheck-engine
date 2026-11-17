@@ -1,34 +1,89 @@
 """
-Vercel Serverless Entrypoint for Autocomplete & Spellcheck Engine.
+Vercel Serverless Entrypoint for Search Autocomplete & Spell Correction Engine.
+Optimized for zero-failure serverless execution with resilient path resolution.
 """
 
 from __future__ import annotations
+import os
 from pathlib import Path
 import sys
 import time
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template_string, request
 
-# Ensure project root is in sys.path
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
+# Resolve directories
+BASE_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = BASE_DIR.parent
 
-from src.engine import AutocompleteEngine
+# Ensure both api/ and project root are in sys.path
+for p in (str(BASE_DIR), str(PROJECT_ROOT)):
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
-app = Flask(
-    __name__,
-    template_folder=str(PROJECT_ROOT / "demo" / "templates"),
-    static_folder=str(PROJECT_ROOT / "demo" / "static"),
-)
+# Import engine
+try:
+    from src.engine import AutocompleteEngine
+except ImportError:
+    from api.src.engine import AutocompleteEngine
 
-# Initialize engine globally
-DATASET_PATH = PROJECT_ROOT / "data" / "words.txt"
-engine = AutocompleteEngine(DATASET_PATH, max_words=105_000)
+app = Flask(__name__)
+
+# Search for words.txt across possible serverless bundle locations
+CANDIDATE_DATASET_PATHS = [
+    BASE_DIR / "words.txt",
+    BASE_DIR / "data" / "words.txt",
+    PROJECT_ROOT / "data" / "words.txt",
+    Path("data/words.txt"),
+    Path("/var/task/data/words.txt"),
+    Path("/var/task/api/words.txt"),
+]
+
+dataset_path = None
+for cp in CANDIDATE_DATASET_PATHS:
+    if cp.exists():
+        dataset_path = cp
+        break
+
+# Initialize engine
+engine = AutocompleteEngine()
+if dataset_path is not None:
+    try:
+        engine.load(dataset_path, max_words=105_000)
+    except Exception as e:
+        print(f"Warning: Failed loading dataset from {dataset_path}: {e}", file=sys.stderr)
+else:
+    print("Warning: No words.txt dataset found in bundle; initializing emergency vocabulary.", file=sys.stderr)
+    # Emergency fallback CS vocabulary if dataset file is absent
+    emergency_words = [
+        ("data structures", 850_000), ("data science", 750_000), ("algorithm", 920_000),
+        ("database", 810_000), ("machine learning", 890_000), ("data", 1_500_000),
+        ("binary search", 420_000), ("dynamic programming", 380_000), ("hash table", 450_000),
+        ("trie", 310_000), ("heap", 290_000), ("python", 880_000), ("programming", 720_000),
+        ("apple", 650_000), ("application", 590_000), ("kitten", 120_000), ("sitting", 180_000),
+    ]
+    for w, f in emergency_words:
+        engine.add(w, freq=f)
+
+# Locate index.html
+CANDIDATE_TEMPLATE_PATHS = [
+    BASE_DIR / "templates" / "index.html",
+    PROJECT_ROOT / "demo" / "templates" / "index.html",
+    Path("demo/templates/index.html"),
+    Path("/var/task/api/templates/index.html"),
+]
+
+html_template_content = ""
+for tp in CANDIDATE_TEMPLATE_PATHS:
+    if tp.exists():
+        html_template_content = tp.read_text(encoding="utf-8")
+        break
 
 
 @app.route("/")
 def index():
     """Render the single-page search interface."""
-    return render_template("index.html", vocab_size=len(engine))
+    if html_template_content:
+        return render_template_string(html_template_content, vocab_size=len(engine))
+    return "<h1>Search Autocomplete Engine</h1><p>Ready. Use /suggest?q=...</p>"
 
 
 @app.route("/suggest", methods=["GET"])
@@ -85,15 +140,17 @@ def select_endpoint():
 
 
 @app.route("/stats", methods=["GET"])
-def stats_endpoint():
-    """System and vocabulary status."""
+@app.route("/health", methods=["GET"])
+def health_endpoint():
+    """System health check and diagnostic metadata."""
     return jsonify({
+        "status": "healthy",
         "vocabulary_size": len(engine),
-        "status": "ready",
+        "dataset_path": str(dataset_path) if dataset_path else None,
+        "template_found": bool(html_template_content),
         "runtime": "Vercel Serverless Python",
     })
 
 
-# For local testing
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000)
