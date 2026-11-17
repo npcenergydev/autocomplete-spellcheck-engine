@@ -1,6 +1,6 @@
 """
 Vercel Serverless Entrypoint for Search Autocomplete & Spell Correction Engine.
-Optimized for zero-failure serverless execution with resilient path resolution.
+Optimized for zero-failure serverless execution with resilient path resolution and routing.
 """
 
 from __future__ import annotations
@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import sys
 import time
-from flask import Flask, jsonify, render_template_string, request
+from flask import Flask, jsonify, render_template_string, request, Response
 
 # Resolve directories
 BASE_DIR = Path(__file__).resolve().parent
@@ -43,7 +43,7 @@ for cp in CANDIDATE_DATASET_PATHS:
         dataset_path = cp
         break
 
-# Initialize engine
+# Lazy or immediate load
 engine = AutocompleteEngine()
 if dataset_path is not None:
     try:
@@ -52,7 +52,6 @@ if dataset_path is not None:
         print(f"Warning: Failed loading dataset from {dataset_path}: {e}", file=sys.stderr)
 else:
     print("Warning: No words.txt dataset found in bundle; initializing emergency vocabulary.", file=sys.stderr)
-    # Emergency fallback CS vocabulary if dataset file is absent
     emergency_words = [
         ("data structures", 850_000), ("data science", 750_000), ("algorithm", 920_000),
         ("database", 810_000), ("machine learning", 890_000), ("data", 1_500_000),
@@ -79,6 +78,9 @@ for tp in CANDIDATE_TEMPLATE_PATHS:
 
 
 @app.route("/")
+@app.route("/api")
+@app.route("/api/index")
+@app.route("/api/index/")
 def index():
     """Render the single-page search interface."""
     if html_template_content:
@@ -87,10 +89,10 @@ def index():
 
 
 @app.route("/suggest", methods=["GET"])
+@app.route("/api/suggest", methods=["GET"])
+@app.route("/api/index/suggest", methods=["GET"])
 def suggest_endpoint():
-    """
-    Autocomplete endpoint called on each keystroke.
-    """
+    """Autocomplete endpoint called on each keystroke."""
     query = request.args.get("q", "").strip()
     k_param = request.args.get("k", "5")
     try:
@@ -120,10 +122,10 @@ def suggest_endpoint():
 
 
 @app.route("/select", methods=["POST"])
+@app.route("/api/select", methods=["POST"])
+@app.route("/api/index/select", methods=["POST"])
 def select_endpoint():
-    """
-    User selection endpoint to dynamically increment frequency.
-    """
+    """User selection endpoint to dynamically increment frequency."""
     data = request.get_json(silent=True) or {}
     word = data.get("word") or request.form.get("word") or request.args.get("word")
     if not word:
@@ -141,6 +143,8 @@ def select_endpoint():
 
 @app.route("/stats", methods=["GET"])
 @app.route("/health", methods=["GET"])
+@app.route("/api/stats", methods=["GET"])
+@app.route("/api/health", methods=["GET"])
 def health_endpoint():
     """System health check and diagnostic metadata."""
     return jsonify({
@@ -150,6 +154,25 @@ def health_endpoint():
         "template_found": bool(html_template_content),
         "runtime": "Vercel Serverless Python",
     })
+
+
+@app.errorhandler(404)
+def fallback_router(e):
+    """
+    Catch-all router to handle Vercel proxy rewrite variations seamlessly.
+    Ensures that any rewritten URL returns the appropriate endpoint.
+    """
+    raw_path = request.path.lower()
+    if "suggest" in raw_path:
+        return suggest_endpoint()
+    if "select" in raw_path and request.method == "POST":
+        return select_endpoint()
+    if "health" in raw_path or "stats" in raw_path:
+        return health_endpoint()
+    # Default to main interface on GET
+    if request.method == "GET":
+        return index()
+    return jsonify({"error": "Not found", "path": request.path}), 404
 
 
 if __name__ == "__main__":

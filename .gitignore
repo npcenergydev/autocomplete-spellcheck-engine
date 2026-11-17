@@ -32,3 +32,4 @@ Thumbs.db
 # Vercel deployment artifacts
 .vercel/
 
+*.egg-info/
